@@ -1,0 +1,67 @@
+name: Retype Action for FTP sync using git-ftp
+author: Object.NET, Inc.
+description: |-
+  Uses git-ftp to publish/sync retype documentation site to a FTP host.
+inputs:
+  branch:
+    description: |-
+      The name of the branch where the Retype output will be committed to.
+      This is required to store history of changes in contents that should be
+      published to the FTP endpoint.
+      Default is "retype"
+    required: false
+  directory:
+    description: |-
+      The relative path within the repo/branch where to commit the Retype output.
+      Useful if you use GitHub pages to host from the "docs" folder on "main"
+      branch. Defaults to root of the branch.
+    required: false
+  ftp-host:
+    description: |-
+      Hostname or IP address of the FTP server where files are to be sent.
+      Examples: ftp.mydomain.com, 172.16.10.20
+      GitHub as a whole did not support ipv6 at the time this was redacted.
+    required: true
+  ftp-pass:
+    description: |-
+      FTP password to autenticate in the FTP server with.
+      Please provide at least this as a GitHub secret.
+    required: true
+  ftp-root:
+    description: |-
+      Path to the directory within the FTP server to place files in.
+      Examples: public_html, wwwroot, mydomain.com/wwwroot,
+        / (root folder, valid depending on FTP server), . (FTP home)
+    required: true
+  ftp-user:
+    description: |-
+      FTP username to authenticate in the FTP server with.
+    required: true
+  github-token:
+    description: |-
+      A GitHub Token used by the action to create a pull request in cases where
+      a new uniquely named branch is created. If the target branch exists and
+      "update-branch" is not true, then a pull request to merge the temporary
+      branch will be created. If this option is not set, the action may push a
+      new branch but will not create a pull request. Default is empty.
+    required: false
+  update-branch:
+    description: |-
+      Set as true to push changes directly to the target branch, even if it
+      already exists. This will avoid the need for the action to create a pull
+      request. Default is false.
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - run: "${GITHUB_ACTION_PATH}/git-ftp-sync.sh"
+      shell: bash
+      env:
+        INPUT_BRANCH: ${{ inputs.branch }}
+        INPUT_DIRECTORY: ${{ inputs.directory }}
+        INPUT_FTP_HOST: ${{ inputs.ftp-host }}
+        INPUT_FTP_PASS: ${{ inputs.ftp-pass }}
+        INPUT_FTP_ROOT: ${{ inputs.ftp-root }}
+        INPUT_FTP_USER: ${{ inputs.ftp-user }}
+        INPUT_UPDATE_BRANCH: ${{ inputs.update-branch }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
