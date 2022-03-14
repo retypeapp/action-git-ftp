@@ -57,11 +57,11 @@ jobs:
 
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: 6.0.x
 
-      - uses: retypeapp/action-build@v1
+      - uses: retypeapp/action-build@v2
 
-      - uses: retypeapp/action-git-ftp@v1
+      - uses: retypeapp/action-git-ftp@v2
         with:
           ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
           ftp-root: public_html
@@ -200,11 +200,11 @@ jobs:
 
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: 6.0.x
 
-      - uses: retypeapp/action-build@v1
+      - uses: retypeapp/action-build@v2
 
-      - uses: retypeapp/action-git-ftp@v1
+      - uses: retypeapp/action-git-ftp@v2
         with:
           ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
           ftp-root: public_html
@@ -219,7 +219,7 @@ jobs:
 ### Most common setup
 
 ```yaml
-- uses: retypeapp/action-gt-ftp@v1
+- uses: retypeapp/action-git-ftp@v2
   with:
     ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
     ftp-root: public_html
@@ -238,11 +238,11 @@ If the branch does not exist, it will be created as an orphan branch. This means
 When the documentation should be held in a subdirectory in the target website, say, `/documentation`, this would be used:
 
 ```yaml
-- uses: retypeapp/action-build@v1
+- uses: retypeapp/action-build@v2
   with:
     base: documentation
 
-- uses: retypeapp/action-git-ftp@v1
+- uses: retypeapp/action-git-ftp@v2
   with:
     ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
     ftp-root: public_html/documentation
@@ -264,7 +264,7 @@ When the documentation should be held in a subdirectory in the target website, s
 This example will use a subfolder within the main branch to store history of the website changes.
 
 ```yaml
-- uses: retypeapp/action-git-ftp@v1
+- uses: retypeapp/action-git-ftp@v2
   with:
     ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
     ftp-root: wwwroot
@@ -291,11 +291,11 @@ jobs:
 
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: 6.0.x
 
-      - uses: retypeapp/action-build@v1
+      - uses: retypeapp/action-build@v2
 
-      - uses: retypeapp/action-git-ftp@v1
+      - uses: retypeapp/action-git-ftp@v2
         with:
           ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
           ftp-root: wwwroot
@@ -329,11 +329,11 @@ jobs:
 
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: 6.0.x
 
-      - uses: retypeapp/action-build@v1
+      - uses: retypeapp/action-build@v2
 
-      - uses: retypeapp/action-git-ftp@v1
+      - uses: retypeapp/action-git-ftp@v2
         with:
           ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
           ftp-root: wwwroot
@@ -370,7 +370,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: 6.0.x
 
       - name: Build documentation for GitHub Pages
         uses: retypeapp/action-build@v1
@@ -386,10 +386,10 @@ jobs:
         run: git checkout ${{ github.sha }}
 
       - name: Build documentation for FTP site
-        uses: retypeapp/action-build@v1
+        uses: retypeapp/action-build@v2
 
       - name: Publish built documentation to FTP site
-        uses: retypeapp/action-git-ftp@v1
+        uses: retypeapp/action-git-ftp@v2
         with:
           ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
           ftp-root: public_html
@@ -405,12 +405,12 @@ Alternatively, from the example above, if we were to push to a FTP's `my-docs/` 
 
 ```yaml
 - name: Build documentation for FTP site
-  uses: retypeapp/action-build@v1
+  uses: retypeapp/action-build@v2
   with:
     base: my-docs
 
 - name: Publish built documentation to FTP site
-  uses: retypeapp/action-git-ftp@v1
+  uses: retypeapp/action-git-ftp@v2
   with:
     ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
     ftp-root: public_html/my-docs
