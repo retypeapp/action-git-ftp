@@ -73,7 +73,7 @@ It is recommended to pass all input prefixed with `ftp-` as [GitHub Encrypted Se
 
 ### `branch`
 
-Specifies the target branch where the Retype output will be merged to.
+Specifies the target branch where the Retype output will be merged to. The `git-ftp` tool uses a branch to determine file changes based in git history, uploading only changes since last sync.
 
 - **Default:** `retype`
 - **Accepts:** A string or the `HEAD` keyword. Examples: `gh-pages`, `main`, `website`, `HEAD`
@@ -98,14 +98,16 @@ Specifies the target branch where the Retype output will be merged to.
 
 ### `directory`
 
-Specifies the root where to place the Retype output files. The path is relative to the repository.
+Specifies the root where to place the Retype output files. The path is relative to the repository. This allows, for instance, to have the output in the same branch the input (source) files are in.
 
 - **Default:** null (root of the repository)
 - **Accepts:** A string. Example: `docs`
 
 #### Remarks
 
-Using `/` or `.` is equivalent to not specifying an input, as it will be changing to the `.//` and `./.` directories respectively. Use of upper-level directories (`../`) is accepted but may result in files being copied outside the repository, in which case the action might fail due to being outside the repository boundaries.
+- Using `/` or `.` is equivalent to not specifying an input, as it will be changing to the `.//` and `./.` directories respectively. Use of upper-level directories (`../`) is accepted but may result in files being copied outside the repository, in which case the action might fail due to being outside the repository boundaries.
+
+- If the `directory` points to a subirectory within Retype's input, a recursive replication of the output directory may occur. Adding it as a [Retype exclude path](https://retype.com/configuration/project/#exclude) should be enough to avoid this.
 
 ### `ftp-host`
 
@@ -144,7 +146,7 @@ The root directory in the remote host where to place and sync the files.
 The username used to authenticate with in the remote FTP host.
 
 - **Default:** This argument is required and there's no default.
-- ** Accepts:** a string representing an username.
+- **Accepts:** a string representing an username.
 
 ### `update-branch`
 
@@ -245,9 +247,9 @@ When the documentation should be held in a subdirectory in the target website, s
 ```
 
 **Notice:**
-  - It is necessary to create the `public_html/documentation/` directory in the ftp site or the workflow will fail.
+  - It is required that the `public_html/documentation/` directory exists in the ftp site prior to running the workflow, or it will fail. To avoid uploading to undesired locations, the Git-FTP Action won't create the root directory itself. But it will create subdirectories in the website as needed.
 
-  - The `base` setting is required whenever the Retype website is not going to be hosted in the website's root. See more in [retype documentation on the `base` setting](https://retype.com/configuration/project/#base).
+  - The `base` setting is not required if the `url` project setting is set to the same directory (`documentation`). It is also not required if Retype is configured to support relative pathing (available since version 2.3.0). It would only be required if no `url` is specified in Retype configuration file, and the Retype website is not going to be served from the host's root website directory. See more in [Retype documentation on the `url` project setting](https://retype.com/configuration/project/#url).
 
 ---
 
@@ -326,81 +328,7 @@ jobs:
           update-branch: true
 ```
 
-**Notice:** In case the GitHub Pages website needs a custom `base` setting, or the FTP host requires a different one, it's best to redo the [action-build](https://github.com/retypeapp/action-build) step with the right `base` for each publish target. The history for the builds should not be kept in the same branch+directory as the setting implies changes throughout all retype processed files. The next example shows how to deal with that.
-
-See [Managing Releases in a Repository](https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository) for information about GitHub Releases.
-
 ---
-
-### GitHub Pages and FTP simultaneously
-
-This example shows how to handle publishing to different targets with different values for the `base` Retype setting. Here, the [action-github-pages](https://github.com/retypeapp/action-github-pages) will be used to publish to GitHub Pages default host (`organization.github.io/my-repo-name`) and [action-git-ftp](https://github.com/retypeapp/action-git-ftp) (this one) to publish to a FTP server's root public path.
-
-As each target use different `base` values, different branch names are also required. This is because `base` changes refect throughout most built Retype files and it would lead `git-ftp` to re-upload more files than necessary.
-
-```yaml
-name: Publish on new release to bot GitHub Pages and FTP
-on:
-  release:
-    types: [ published ]
-
-jobs:
-  publish:
-    name: Assemble and publish docs
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Build documentation for GitHub Pages
-        uses: retypeapp/action-build@latest
-        with:
-          base: my-repo-name
-
-      - name: Publish built documentation to GitHub Pages
-        uses: retypeapp/action-github-pages@latest
-        with:
-          branch: gh-pages
-
-      - name: Switch back to original branch
-        run: git checkout ${{ github.sha }}
-
-      - name: Build documentation for FTP site
-        uses: retypeapp/action-build@latest
-
-      - name: Publish built documentation to FTP site
-        uses: retypeapp/action-git-ftp@latest
-        with:
-          ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
-          ftp-root: public_html
-          ftp-user: ${{ secrets.FTP_USERNAME }}
-          ftp-pass: ${{ secrets.FTP_PASSWORD }}
-          branch: ftp-site-history
-          update-branch: true
-```
-
-Notice there's no `base` in the build step for the FTP site. This simply means we are going to use whatever is set in the `retype.json` file or use default, which is `/` (root).
-
-Alternatively, from the example above, if we were to push to a FTP's `my-docs/` subdirectory, so that the documentation would be available at something like **http://www.mywebsite.com/my-docs/**, the build+publish steps would be changed to:
-
-```yaml
-- name: Build documentation for FTP site
-  uses: retypeapp/action-build@latest
-  with:
-    base: my-docs
-
-- name: Publish built documentation to FTP site
-  uses: retypeapp/action-git-ftp@latest
-  with:
-    ftp-host: ${{ secrets.FTP_SERVER_ADDRESS }}
-    ftp-root: public_html/my-docs
-    ftp-user: ${{ secrets.FTP_USERNAME }}
-    ftp-pass: ${{ secrets.FTP_PASSWORD }}
-    branch: ftp-site-history
-    update-branch: true
-```
-
-See [Managing Releases in a Repository](https://docs.github.com/en/github/administering-a-repository/managing-releases-in-a-repository) for information about GitHub Releases.
 
 ## See also
 
@@ -408,4 +336,4 @@ See [Managing Releases in a Repository](https://docs.github.com/en/github/admini
 - Retype's [action-build](https://github.com/retypeapp/action-build)
 - Retype's [action-github-pages](https://github.com/retypeapp/action-github-pages)
 - [GitHub Actions documentation](https://docs.github.com/en/actions)
-- [The git-ftp website]()
+- [The git-ftp website](https://git-ftp.github.io/)
